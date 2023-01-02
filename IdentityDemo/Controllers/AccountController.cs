@@ -17,7 +17,7 @@ namespace IdentityDemo.Controllers
         {
             this.accountService = accountService;
         }
-
+        [Authorize]
         [HttpGet("members")]
         public IActionResult Members()
         {
@@ -32,13 +32,13 @@ namespace IdentityDemo.Controllers
         }
 
         [HttpPost("register")]
-        public IActionResult Register(RegisterVM viewModel)
+        public async Task<IActionResult> RegisterAsync(RegisterVM viewModel)
         {
             if (!ModelState.IsValid)
                 return View();
 
             // Try to register user
-            var errorMessage = accountService.TryRegister(viewModel);
+            var errorMessage = await accountService.TryRegisterAsync(viewModel);
             if (errorMessage != null)
             {
                 // Show error
@@ -46,8 +46,10 @@ namespace IdentityDemo.Controllers
                 return View();
             }
 
+            await accountService.TryLoginAsync(new LoginVM { Username = viewModel.Username, Password = viewModel.Password});
+
             // Redirect user
-            return RedirectToAction(nameof(Login));
+            return RedirectToAction(nameof(Members));
         }
 
         [HttpGet("login")]
@@ -57,14 +59,14 @@ namespace IdentityDemo.Controllers
         }
 
         [HttpPost("login")]
-        public IActionResult Login(LoginVM viewModel)
+        public async Task<IActionResult> LoginAsync(LoginVM viewModel)
         {
             if (!ModelState.IsValid)
                 return View();
 
             // Check if credentials is valid (and set auth cookie)
-            var success = accountService.TryLogin(viewModel);
-            if (!success)
+            var success = await accountService.TryLoginAsync(viewModel);
+            if (!success)   
             {
                 // Show error
                 ModelState.AddModelError(string.Empty, "Login failed");
@@ -73,6 +75,13 @@ namespace IdentityDemo.Controllers
 
             // Redirect user
             return RedirectToAction(nameof(Members));
+        }
+
+        [HttpGet("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            await accountService.Signout();
+            return View();
         }
     }
 }

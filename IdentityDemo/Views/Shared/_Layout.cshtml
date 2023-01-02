@@ -7,9 +7,15 @@
 </head>
 <body>
     <nav>
-        <a asp-controller="Account" asp-action="Members">Members</a>
-        <a asp-controller="Account" asp-action="Register">Register</a>
-        <a asp-controller="Account" asp-action="LogIn">Login</a>
+        @if (User.Identity.IsAuthenticated)
+        {
+            <a asp-controller="Account" asp-action="Logout">Sign out</a>
+        }
+        else
+        {
+            <a asp-controller="Account" asp-action="Register">Register</a>
+            <a asp-controller="Account" asp-action="Login">Sign In</a>
+        }
     </nav>
     <br />
     <div>
